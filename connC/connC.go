@@ -6,8 +6,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/PTFS/connSocket/models"
-	"github.com/PTFS/connSocket/socket"
+	"github.com/PTFS/connsocket/models"
+	"github.com/PTFS/connsocket/socket"
 )
 
 // ConnC client-conn
@@ -70,8 +70,12 @@ func (c *ConnC) handleReadChan(ctx context.Context, cancel context.CancelFunc) {
 		case <-ctx.Done():
 			return
 		case data := <-c.ReadChan:
-			com := models.Command{}
+			// com := models.Command{}
+			// err := json.Unmarshal(data, &com)
+			var obj json.RawMessage
+			com := models.Command{Content: &obj}
 			err := json.Unmarshal(data, &com)
+			com.Unmarshal(obj)
 			if err == nil {
 				c.ComChan <- com
 			} else {

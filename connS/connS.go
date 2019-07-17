@@ -4,19 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 
-	"github.com/PTFS/connSocket/models"
-	"github.com/PTFS/connSocket/socket"
+	"github.com/PTFS/connsocket/models"
+	"github.com/PTFS/connsocket/socket"
 )
 
-// SMsg to Server
+// RecieveMsg from client
 type RecieveMsg struct {
 	Rep  models.Report
 	Conn *socket.Socket
 }
 
+// WriteMsg to client
 type WriteMsg struct {
 	Comm models.Command
 	ID   string
@@ -27,9 +27,10 @@ type ConnS struct {
 	Port         string
 	Addr         string
 	server       net.Listener
+	msgChan      chan models.Report
 	readmsgChan  chan RecieveMsg
 	writemsgChan chan WriteMsg
-	cancal       context.CancelFunc
+	cancel       context.CancelFunc
 	ctx          context.Context
 
 	container map[string]*socket.Socket
@@ -40,14 +41,20 @@ func NewConnS(port string, addr string) *ConnS {
 	c := ConnS{
 		Port:         port,
 		Addr:         addr,
+		msgChan:      make(chan models.Report, 16),
 		readmsgChan:  make(chan RecieveMsg, 16),
 		writemsgChan: make(chan WriteMsg, 16),
 		container:    make(map[string]*socket.Socket),
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	c.ctx = ctx
-	c.cancal = cancel
+	c.cancel = cancel
 	return &c
+}
+
+// GetRepChan return chann instance
+func (c *ConnS) GetRepChan() chan models.Report {
+	return c.msgChan
 }
 
 // WriteTo write msg to client.
@@ -61,7 +68,8 @@ func (c *ConnS) WriteTo(id string, data *models.Command) {
 
 // Stop stop server
 func (c *ConnS) Stop() {
-
+	c.server.Close()
+	c.cancel()
 }
 
 // Start start server
@@ -94,8 +102,12 @@ func (c *ConnS) Start() error {
 				for {
 					select {
 					case val := <-soc.ReadChan:
-						re := models.Report{}
+						//
+						var obj json.RawMessage
+						re := models.Report{Content: &obj}
 						err := json.Unmarshal(val, &re)
+						re.Unmarshal(obj)
+						//
 						if err == nil {
 							smg := RecieveMsg{
 								Rep:  re,
@@ -139,34 +151,28 @@ func (c *ConnS) run() {
 			switch smg.Rep.Type {
 			case models.Type_Login:
 				//
-				login := models.Login{}
-				err := json.Unmarshal([]byte(smg.Rep.Content), &login)
-				if err == nil {
-					if _, ok := c.container[login.ID]; ok {
-						fmt.Println("已经登陆,", login.ID)
-						// test WriteTo
-						com := models.Command{
-							Type:    models.Command_Talk,
-							Content: "This from Server.",
-						}
-						c.WriteTo(login.ID, &com)
-						//
-					} else {
-						c.container[login.ID] = smg.Conn
-						fmt.Println("登陆成功,", login.ID)
-					}
+				// login := models.Login{}
+				// err := json.Unmarshal([]byte(smg.Rep.Content), &login)
+				login := (smg.Rep.Content).(models.Login)
+				if _, ok := c.container[login.ID]; ok {
+					fmt.Println("已经登陆,", login.ID)
 				} else {
-					log.Println("Unmarshal Error", err)
+					c.container[login.ID] = smg.Conn
+					fmt.Println("登陆成功,", login.ID)
 				}
+
 			case models.Type_Logout:
 				for k, v := range c.container {
 					if v == smg.Conn {
 						fmt.Println("退出登陆,", k)
 						delete(c.container, k)
 						v = nil
+						smg.Rep.Content = models.Login{ID: k}
+						break
 					}
 				}
 			}
+			c.msgChan <- smg.Rep
 		case msg := <-c.writemsgChan:
 			if conn, ok := c.container[msg.ID]; ok {
 				val, err := msg.Comm.String()
