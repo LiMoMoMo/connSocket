@@ -7,6 +7,27 @@
 写消息到服务端
 3. GetCmdChan() chan Command
 获取接收消息的管道
+4. SetReconnect(fn reconnectDo)
+设置断线重连时调用的函数。例如:
+```go
+	// 获取client实例
+	connc, err := connC.NewConnC("8421", "127.0.0.1")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	// 设置断线重连调用的函数
+	connc.SetReconnect(func() {
+		re := models.Login{
+			ID: "qwerty",
+		}
+		report := models.Report{
+			Type:    models.Type_Login,
+			Content: re,
+		}
+		connc.Write(&report)
+	})
+```
 ## connS
 连接服务端。
 ### 接口
@@ -29,10 +50,10 @@
 ```go
 // client
 addr := models.Report{
-	Type: models.Type_AddressInfo,
-	Content: models.AddressInfo{
-		ID:        "qwerty",
-		Addresses: []string{"0.0.0.0", "1.1.1.1"},
+	Type: exModels.Type_Addr,
+	Content: exModels.Addr{
+		ID:   "qwerty",
+		Name: "inkli",
 	},
 }
 connc.Write(&addr)
@@ -45,7 +66,7 @@ go func() {
 	for {
 		select {
 		case cmd := <-connc.GetCmdChan():
-			fmt.Println("Receive Msg", cmd.Content.(models.AddressInfo))
+			fmt.Println("Receive Msg", cmd.Content.(*models.Start).Val)
 		case <-ctx.Done():
 			return
 		}

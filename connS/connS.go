@@ -92,6 +92,7 @@ func (c *ConnS) Start() error {
 				Conn:      conn,
 				ReadChan:  make(chan []byte, 16),
 				WriteChan: make(chan []byte, 16),
+				CloseChan: make(chan bool, 1),
 			}
 			ctx, cancel := context.WithCancel(context.Background())
 			soc.Ctx = ctx
@@ -153,7 +154,7 @@ func (c *ConnS) run() {
 				//
 				// login := models.Login{}
 				// err := json.Unmarshal([]byte(smg.Rep.Content), &login)
-				login := (smg.Rep.Content).(models.Login)
+				login := (smg.Rep.Content).(*models.Login)
 				if _, ok := c.container[login.ID]; ok {
 					fmt.Println("已经登陆,", login.ID)
 				} else {

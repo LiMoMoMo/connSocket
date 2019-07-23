@@ -22,6 +22,7 @@ type Socket struct {
 	Conn      net.Conn
 	ReadChan  chan []byte
 	WriteChan chan []byte
+	CloseChan chan bool
 }
 
 // WriteMsg wait msg to write.
@@ -53,6 +54,7 @@ func (s *Socket) ReadMsg() {
 		n, err := s.Conn.Read(data)
 		if err != nil {
 			s.Conn.Close()
+			s.CloseChan <- true
 			fmt.Println("Conn has been Closed.")
 			s.Closef()
 			break
