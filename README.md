@@ -40,7 +40,7 @@
 4. GetRepChan() chan Report
 获取接收消息的管道
 ## models
-仿照`beego`框架的模型, 将所有数据集合到一个目录下。
+将所有数据集合到一个目录下。
 1. Report
 客户端上报到服务端的消息类型
 2. Command
@@ -53,7 +53,7 @@ addr := models.Report{
 	Type: exModels.Type_Addr,
 	Content: exModels.Addr{
 		ID:   "qwerty",
-		Name: "inkli",
+		Name: "JayChou",
 	},
 }
 connc.Write(&addr)
