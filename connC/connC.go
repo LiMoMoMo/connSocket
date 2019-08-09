@@ -8,8 +8,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/PTFS/connsocket/models"
-	"github.com/PTFS/connsocket/socket"
+	"github.com/LiMoMoMo/go-connSocket/models"
+	"github.com/LiMoMoMo/go-connSocket/socket"
 )
 
 // ConnC client-conn

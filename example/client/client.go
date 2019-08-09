@@ -6,23 +6,23 @@ import (
 	"log"
 	"time"
 
-	"github.com/PTFS/connsocket/connC"
-	exModels "github.com/PTFS/connsocket/example/models"
-	"github.com/PTFS/connsocket/models"
+	"github.com/LiMoMoMo/go-connSocket/connC"
+	exModels "github.com/LiMoMoMo/go-connSocket/example/models"
+	"github.com/LiMoMoMo/go-connSocket/models"
 )
 
 func main() {
-	connc, err := connC.NewConnC("8421", "127.0.0.1")
+	connc, err := connC.NewConnC("8976", "127.0.0.1")
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	connc.SetReconnect(func() {
-		re := models.Login{
+		re := models.Register{
 			ID: "qwerty",
 		}
 		report := models.Report{
-			Type:    models.Type_Login,
+			Type:    models.Type_Register,
 			Content: re,
 		}
 		connc.Write(&report)
@@ -41,11 +41,11 @@ func main() {
 	}()
 	//Write
 	for i := 0; i < 1; i++ {
-		re := models.Login{
+		re := models.Register{
 			ID: "qwerty",
 		}
 		report := models.Report{
-			Type:    models.Type_Login,
+			Type:    models.Type_Register,
 			Content: re,
 		}
 
@@ -53,29 +53,35 @@ func main() {
 		time.Sleep(2 * time.Second)
 	}
 	for i := 0; i < 20; i++ {
+		pTrafic := []exModels.TrafficInfo{}
+		cTrafic := []exModels.ChildTraffic{}
+		pTrafic = append(pTrafic, exModels.TrafficInfo{"qwerty", 60, 50})
+		pTrafic = append(pTrafic, exModels.TrafficInfo{"asdfgh", 78, 35})
+		cTrafic = append(cTrafic, pTrafic)
 		addr := models.Report{
-			Type: exModels.Type_Addr,
-			Content: exModels.Addr{
-				ID:   "qwerty",
-				Name: "inkli",
+			Type: exModels.Type_HeartBeat,
+			Content: exModels.HeatbeatInfo{
+				ID:            "qwerty",
+				ParentTraffic: pTrafic,
+				ChildTraffics: cTrafic,
 			},
 		}
 		connc.Write(&addr)
 		time.Sleep(2 * time.Second)
 
-		test := exModels.Test{
-			A: "This is A part",
-			B: 156,
-			C: []string{"qwer", "asdf"},
-		}
-		show := models.Report{
-			Type: exModels.Type_Show,
-			Content: exModels.Show{
-				Name: "This is show",
-				Te:   test,
-			},
-		}
-		connc.Write(&show)
+		// test := exModels.Test{
+		// 	A: "This is A part",
+		// 	B: 156,
+		// 	C: []string{"qwer", "asdf"},
+		// }
+		// show := models.Report{
+		// 	Type: exModels.Type_Show,
+		// 	Content: exModels.Show{
+		// 		Name: "This is show",
+		// 		Te:   test,
+		// 	},
+		// }
+		// connc.Write(&show)
 	}
 
 	time.Sleep(10 * time.Second)

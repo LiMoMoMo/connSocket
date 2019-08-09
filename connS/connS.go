@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/PTFS/connsocket/models"
-	"github.com/PTFS/connsocket/socket"
+	"github.com/LiMoMoMo/go-connSocket/models"
+	"github.com/LiMoMoMo/go-connSocket/socket"
 )
 
 // RecieveMsg from client
@@ -150,11 +150,11 @@ func (c *ConnS) run() {
 			return
 		case smg := <-c.readmsgChan:
 			switch smg.Rep.Type {
-			case models.Type_Login:
+			case models.Type_Register:
 				//
 				// login := models.Login{}
 				// err := json.Unmarshal([]byte(smg.Rep.Content), &login)
-				login := (smg.Rep.Content).(*models.Login)
+				login := (smg.Rep.Content).(*models.Register)
 				if _, ok := c.container[login.ID]; ok {
 					fmt.Println("已经登陆,", login.ID)
 				} else {
@@ -168,7 +168,7 @@ func (c *ConnS) run() {
 						fmt.Println("退出登陆,", k)
 						delete(c.container, k)
 						v = nil
-						smg.Rep.Content = models.Login{ID: k}
+						smg.Rep.Content = models.Register{ID: k}
 						break
 					}
 				}

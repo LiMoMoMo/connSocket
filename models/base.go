@@ -10,7 +10,7 @@ func init() {
 	reportMap = make(map[ReportType]getObj)
 	commandMap = make(map[CommandType]getObj)
 	// register Type_Login
-	RegisterReport(Type_Login, func() BaseContent { return &Login{} })
+	RegisterReport(Type_Register, func() BaseContent { return &Register{} })
 	RegisterCommand(Command_Start, func() BaseContent { return &Start{} })
 }
 

@@ -7,7 +7,7 @@ type ReportType int32
 
 const (
 	// Type_Login client connect
-	Type_Login ReportType = iota
+	Type_Register ReportType = iota
 	// Type_Logout client disconnect
 	Type_Logout
 )
@@ -18,13 +18,13 @@ type Report struct {
 	Content interface{}
 }
 
-// Login client connect
-type Login struct {
+// Register client connect
+type Register struct {
 	ID string
 }
 
 // Fill implement from BaseContent
-func (l *Login) Fill(m map[string]interface{}) {
+func (l *Register) Fill(m map[string]interface{}) {
 	FillStruct(m, l)
 }
 
@@ -40,7 +40,8 @@ func (r *Report) Unmarshal(content json.RawMessage) {
 	i, ok := reportMap[r.Type]
 	if ok {
 		t := i()
-		t.Fill(val.(map[string]interface{}))
+		bytes, _ := json.Marshal(val.(map[string]interface{}))
+		json.Unmarshal(bytes, t)
 		r.Content = (t).(BaseContent)
 	} else {
 		r.Content = val

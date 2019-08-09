@@ -1,19 +1,19 @@
 package examplemodels
 
 import (
-	"encoding/json"
-
-	"github.com/PTFS/connsocket/models"
+	"github.com/LiMoMoMo/go-connSocket/models"
 )
 
 func init() {
 	models.RegisterReport(Type_Addr, func() models.BaseContent { return &Addr{} })
 	models.RegisterReport(Type_Show, func() models.BaseContent { return &Show{} })
+	models.RegisterReport(Type_HeartBeat, func() models.BaseContent { return &HeatbeatInfo{} })
 }
 
 const (
 	Type_Addr models.ReportType = models.Type_Logout + 1 + iota
 	Type_Show
+	Type_HeartBeat
 )
 
 // Addr struct
@@ -33,16 +33,27 @@ type Show struct {
 	Te   Test
 }
 
+type HeatbeatInfo struct {
+	ID            string
+	ParentTraffic []TrafficInfo
+	ChildTraffics []ChildTraffic
+}
+
+type ChildTraffic []TrafficInfo
+
+type TrafficInfo struct {
+	ID           string
+	TotalTraffic int64
+	Speed        int64
+}
+
 // Fill implement from BaseContent
 func (a *Addr) Fill(m map[string]interface{}) {
-	// models.FillStruct(m, a)
-	bytes, _ := json.Marshal(m)
-	json.Unmarshal(bytes, a)
 }
 
 // Fill implement from BaseContent
 func (s *Show) Fill(m map[string]interface{}) {
-	// models.FillStruct(m, s)
-	bytes, _ := json.Marshal(m)
-	json.Unmarshal(bytes, s)
+}
+
+func (s *HeatbeatInfo) Fill(m map[string]interface{}) {
 }

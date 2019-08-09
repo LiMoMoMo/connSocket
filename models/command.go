@@ -38,7 +38,8 @@ func (r *Command) Unmarshal(content json.RawMessage) {
 	i, ok := commandMap[r.Type]
 	if ok {
 		t := i()
-		t.Fill(val.(map[string]interface{}))
+		bytes, _ := json.Marshal(val.(map[string]interface{}))
+		json.Unmarshal(bytes, t)
 		r.Content = (t).(BaseContent)
 	} else {
 		r.Content = val
